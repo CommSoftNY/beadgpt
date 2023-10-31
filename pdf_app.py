@@ -119,6 +119,8 @@ def preload_all_docs_from_path(path):
 #preload_all_docs_from_path("docs/")
 #st.write("Preloaded all documents from path")
 st.write(" Click the Button Below to load the AI Model and Documents when you are ready to start asking questions about BEAD")
+st.write(" You can select the AI Model and set the AI Randomness / Determinism in the sidebar to the left")
+st.write("Once your AI is loaded , changing the Model or Temperature will require you to reload the page")
 if st.button("Click Here to Start Asking Questions About BEAD"):
         with st.spinner("Processing"):
             preload_all_docs_from_path("docs/")
