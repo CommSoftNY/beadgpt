@@ -16,7 +16,7 @@ import os
 
 home_privacy = "We value and respect your privacy. To safeguard your personal details, we utilize the hashed value of your OpenAI API Key, ensuring utmost confidentiality and anonymity. Your API key facilitates AI-driven features during your session and is never retained post-visit. You can confidently fine-tune your research, assured that your information remains protected and private."
 
-openai.api_key = "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"
+#openai.api_key = "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"
 # Page configuration for Simple PDF App
 st.set_page_config(
     page_title="BEAD Louisiana Q&A with AI",
