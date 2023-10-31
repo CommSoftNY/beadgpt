@@ -26,7 +26,7 @@ st.set_page_config(
     )
 
 # OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-
+# 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 (CS)
 OPENAI_API_KEY = "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" # st.sidebar.text_input("Enter Your OpenAI API Key:", type="password")
 st.sidebar.subheader("Model Selection")
 preferred_model='gpt-4'
@@ -88,7 +88,7 @@ def get_vectorstore(text_chunks):
 def get_conversation_chain(vectorstore):
     memory = ConversationBufferWindowMemory(memory_key='chat_history', return_message=True)
     conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=ChatOpenAI(temperature=temperature_input, model_name=model_select,openai_api_key=str(OPENAI_API_KEY)),
+        llm=ChatOpenAI(temperature=temperature_input, model_name=model_select),
         retriever=vectorstore.as_retriever(),
         get_chat_history=lambda h : h,
         memory=memory
