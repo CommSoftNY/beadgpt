@@ -41,7 +41,7 @@ clear_history = st.sidebar.button("Clear conversation history")
 if "conversation" not in st.session_state:
     st.session_state.conversation = None
 
-st.markdown(f"""## AI-Assisted Document Analysis For BEAD 📑 <span style=color:#2E9BF5><font size=5>Beta</font></span>""",unsafe_allow_html=True)
+st.markdown(f"""## AI-Assisted Document Analysis For  Louisiana 📑 <span style=color:#2E9BF5><font size=5>Beta</font></span>""",unsafe_allow_html=True)
 
 
 # Extracts and concatenates text from a list of PDF documents
@@ -118,7 +118,7 @@ def preload_all_docs_from_path(path):
 
 #preload_all_docs_from_path("docs/")
 #st.write("Preloaded all documents from path")
-if st.button("Activate Chain"):
+if st.button("Click Here to Start Asking Questions About BEAD"):
         with st.spinner("Processing"):
             preload_all_docs_from_path("docs/")
             st.write("Preloaded all documents from path")
@@ -127,7 +127,7 @@ if st.button("Activate Chain"):
 # Initialize chat history in session state for Document Analysis (doc) if not present
 if 'doc_messages' not in st.session_state or clear_history:
     # Start with first message from assistant
-    st.session_state['doc_messages'] = [{"role": "assistant", "content": "Query your documents"}]
+    st.session_state['doc_messages'] = [{"role": "assistant", "content": "Ask A Question About BEAD"}]
     st.session_state['chat_history'] = []  # Initialize chat_history as an empty list
 
 # Display previous chat messages
