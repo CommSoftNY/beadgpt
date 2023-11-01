@@ -74,6 +74,58 @@ def get_text_chunks(text):
     chunks = text_splitter.split_text(text)
     return chunks
 
+def load_question_ux():
+    # Initialize chat history in session state for Document Analysis (doc) if not present
+    if  st.session_state.conversation != None:
+        if 'doc_messages' not in st.session_state or clear_history:
+            # Start with first message from assistant
+            st.session_state['doc_messages'] = [{"role": "assistant", "content": "Ask A Question About BEAD"}]
+            st.session_state['chat_history'] = []  # Initialize chat_history as an empty list
+
+    # Display previous chat messages
+    if  st.session_state.conversation != None:
+        for message in st.session_state['doc_messages']:
+            with st.chat_message(message['role']):
+                st.write(message['content'])
+    print("Rednering the UX!")
+    # If user provides input, process it
+    if  st.session_state.conversation != None:
+        if user_query := st.chat_input("Enter your query here"):
+            if not OPENAI_API_KEY:
+                st.info("Please add your OpenAI API key to continue.")
+                st.stop()
+            # Add user's message to chat history
+            st.session_state['doc_messages'].append({"role": "user", "content": user_query})
+            with st.chat_message("user"):
+                st.markdown(user_query)
+
+            with st.spinner("Generating response..."):
+                # Check if the conversation chain is initialized
+                if 'conversation' in st.session_state:
+                    st.session_state['chat_history'] = st.session_state.get('chat_history', []) + [
+                        {
+                            "role": "user",
+                            "content": user_query
+                        }
+                    ]
+                    # Process the user's message using the conversation chain
+                    result = st.session_state.conversation({
+                        "question": user_query, 
+                        "chat_history": st.session_state['chat_history']})
+                    response = result["answer"]
+                    # Append the user's question and AI's answer to chat_history
+                    st.session_state['chat_history'].append({
+                        "role": "assistant",
+                        "content": response
+                    })
+                else:
+                    response = "Please upload a document first to initialize the conversation chain."
+                
+                # Display AI's response in chat format
+                with st.chat_message("assistant"):
+                    st.write(response)
+                # Add AI's response to doc_messages for displaying in UI
+                st.session_state['doc_messages'].append({"role": "assistant", "content": response})
 
 # Generates embeddings for given text chunks and creates a vector store using FAISS
 def get_vectorstore(text_chunks):
@@ -116,63 +168,18 @@ def preload_all_docs_from_path(path):
     # Create conversation chain
     st.session_state.conversation = get_conversation_chain(vectorstore)
 
+   
+
 #preload_all_docs_from_path("docs/")
 #st.write("Preloaded all documents from path")
 st.write(" Click the Button Below to load the AI Model and Documents when you are ready to start asking questions about BEAD")
 st.write(" You can select the AI Model and set the AI Randomness / Determinism in the sidebar to the left")
 st.write("Once your AI is loaded , changing the Model or Temperature will require you to reload the page")
 if st.button("Click Here to Start Asking Questions About BEAD"):
-        with st.spinner("Processing"):
-            preload_all_docs_from_path("docs/")
-            st.write("Preloaded all documents from path")
+    with st.spinner("Processing"):
+        preload_all_docs_from_path("docs/")
+        st.write("Preloaded all documents from path")
+load_question_ux()
 
 
-# Initialize chat history in session state for Document Analysis (doc) if not present
-if 'doc_messages' not in st.session_state or clear_history:
-    # Start with first message from assistant
-    st.session_state['doc_messages'] = [{"role": "assistant", "content": "Ask A Question About BEAD"}]
-    st.session_state['chat_history'] = []  # Initialize chat_history as an empty list
-
-# Display previous chat messages
-for message in st.session_state['doc_messages']:
-    with st.chat_message(message['role']):
-        st.write(message['content'])
-
-# If user provides input, process it
-if user_query := st.chat_input("Enter your query here"):
-    if not OPENAI_API_KEY:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
-    # Add user's message to chat history
-    st.session_state['doc_messages'].append({"role": "user", "content": user_query})
-    with st.chat_message("user"):
-        st.markdown(user_query)
-
-    with st.spinner("Generating response..."):
-        # Check if the conversation chain is initialized
-        if 'conversation' in st.session_state:
-            st.session_state['chat_history'] = st.session_state.get('chat_history', []) + [
-                {
-                    "role": "user",
-                    "content": user_query
-                }
-            ]
-            # Process the user's message using the conversation chain
-            result = st.session_state.conversation({
-                "question": user_query, 
-                "chat_history": st.session_state['chat_history']})
-            response = result["answer"]
-            # Append the user's question and AI's answer to chat_history
-            st.session_state['chat_history'].append({
-                "role": "assistant",
-                "content": response
-            })
-        else:
-            response = "Please upload a document first to initialize the conversation chain."
-        
-        # Display AI's response in chat format
-        with st.chat_message("assistant"):
-            st.write(response)
-        # Add AI's response to doc_messages for displaying in UI
-        st.session_state['doc_messages'].append({"role": "assistant", "content": response})
 
