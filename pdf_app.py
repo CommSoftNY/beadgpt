@@ -1,9 +1,11 @@
 # Import necessary modules
+
 import pandas as pd
 import streamlit as st 
 from PIL import Image
 from PyPDF2 import PdfReader
 import openai
+from doc_retrieval_service import retrieve_document
 
 from langchain.embeddings import OpenAIEmbeddings, SentenceTransformerEmbeddings
 from langchain.chat_models import ChatOpenAI
@@ -29,7 +31,7 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 #OPENAI_API_KEY = # st.sidebar.text_input("Enter Your OpenAI API Key:", type="password")
 st.sidebar.subheader("Model Selection")
 preferred_model='gpt-4'
-llm_model_options = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k','gpt-4']  # Add more models if available
+llm_model_options = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k','gpt-4', 'gpt-4-1106-preview']  # Add more models if available
 model_select = st.sidebar.selectbox('Select LLM Model:', llm_model_options, index=0)
 st.sidebar.markdown("""\n""")
 temperature_input = st.sidebar.slider('Set AI Randomness / Determinism:', min_value=0.0, max_value=1.0, value=0.0)
@@ -87,7 +89,7 @@ def load_question_ux():
         for message in st.session_state['doc_messages']:
             with st.chat_message(message['role']):
                 st.write(message['content'])
-    print("Rednering the UX!")
+    print("Rendering the UX!")
     # If user provides input, process it
     if  st.session_state.conversation != None:
         if user_query := st.chat_input("Enter your query here"):
