@@ -5,7 +5,7 @@ import streamlit as st
 from PIL import Image
 from PyPDF2 import PdfReader
 import openai
-from doc_retrieval_service import retrieve_document
+from doc_retrieval_service import retrieve_all_document_titles, retrieve_document
 
 from langchain.embeddings import OpenAIEmbeddings, SentenceTransformerEmbeddings
 from langchain.chat_models import ChatOpenAI
@@ -24,7 +24,7 @@ st.set_page_config(
     page_title="BEAD Louisiana Q&A with AI",
     page_icon="🧊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
     )
 
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -181,6 +181,11 @@ if st.button("Click Here to Start Asking Questions About BEAD"):
     with st.spinner("Processing"):
         preload_all_docs_from_path("docs/")
         st.write("Preloaded all documents from path")
+if st.sidebar.button("Retrieve document titles"):
+    with st.spinner("Processing"):
+        title_list = retrieve_all_document_titles()
+        print(f"Document titles retrieved: {title_list}")
+        st.sidebar.selectbox("The S3 Bucket Contains the following documents", (title_list))
 load_question_ux()
 
 
