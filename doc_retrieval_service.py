@@ -9,6 +9,7 @@ aws_secret_key = st.secrets["AWS_SECRET_KEY"]
 aws_region = st.secrets["AWS_REGION"]
 s3_bucket_name = st.secrets["S3_BUCKET_NAME"]
 document_key = ""
+document_title = ""
 
 #external database source
 #retrieve document by document name from aws bucket
@@ -38,7 +39,9 @@ def retrieve_document(document_id):
     try:
         response = s3_client.get_object(Bucket=s3_bucket_name, Key=document_key)
 
-        if response is response.IfNoneMatch:
+        print(f'The single document retrieval response is: {response}')
+
+        if response is response.empty:
             print(f"The document: {document_id} could not be found.")
             return None
         else:

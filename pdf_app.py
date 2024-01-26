@@ -181,11 +181,26 @@ if st.button("Click Here to Start Asking Questions About BEAD"):
     with st.spinner("Processing"):
         preload_all_docs_from_path("docs/")
         st.write("Preloaded all documents from path")
-if st.sidebar.button("Retrieve document titles"):
-    with st.spinner("Processing"):
-        title_list = retrieve_all_document_titles()
-        print(f"Document titles retrieved: {title_list}")
-        st.sidebar.selectbox("The S3 Bucket Contains the following documents", (title_list))
+st.spinner("Retrieving documents from S-3")
+title_list = retrieve_all_document_titles()
+print(f"Document titles retrieved: {title_list}")
+selected_option = ''
+selected_option = st.sidebar.selectbox(
+    "The S3 Bucket Contains the following documents", 
+    (title_list),
+    index=None,
+    placeholder="Please select a document")
+
+st.write(f'you selected: {selected_option}')
+title = selected_option
+if selected_option != None:
+    retrieved_text = retrieve_document(title)
+    st.write(f'The document text is: /n {retrieved_text}')
+    doc_text_chunks = get_text_chunks(retrieved_text)
+    st.write(f'The document chunks are: /n {doc_text_chunks}')
+    #new_vector_store = get_vectorstore(doc_text_chunks)
+    #st.session_state.conversation(new_vector_store)
+
 load_question_ux()
 
 
