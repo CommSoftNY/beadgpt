@@ -37,8 +37,7 @@ st.sidebar.markdown("""\n""")
 temperature_input = st.sidebar.slider('Set AI Randomness / Determinism:', min_value=0.0, max_value=1.0, value=0.0)
 st.sidebar.markdown("""\n""")
 clear_history = st.sidebar.button("Clear conversation history")
-if clear_history:
-    selected_option = "Please select a document"
+
 
 
 if "conversation" not in st.session_state:
@@ -177,7 +176,7 @@ def process_doc_from_store(title):
     pdf_text = retrieve_document(title)
     # Receive chunks from text
     #text_chunks = get_text_chunks(pdf_text) #might not need to do this with gpt-4-turbo
-    user_query = "Read and summarize the following document: "+ pdf_text
+    user_query = "Read and summarize the following context: "+ pdf_text
     ## st.write(text_chunks)  
     # If user provides input, process it
     if  st.session_state.conversation != None:
@@ -236,23 +235,26 @@ if st.button("Click Here to Start Asking Questions About BEAD"):
 st.spinner("Retrieving documents from S-3")
 title_list = retrieve_all_document_titles()
 
-selected_option = ''
-selected_option = st.sidebar.selectbox(
-    "The S3 Bucket Contains the following documents", 
-    (title_list),
-    index=None,
-    placeholder="Please select a document")
+# selected_option = ''
+# selected_option = st.sidebar.selectbox(
+#     "The S3 Bucket Contains the following documents", 
+#     (title_list),
+#     index=None,
+#     placeholder="Please select a document")
 
-print(f'user selected: {selected_option}')
-title = selected_option
-if selected_option != None:
-    #check to see if ai prompt started
-    # Initialize chat history in session state for Document Analysis (doc) if not present
-    if  st.session_state.conversation is None:
-        st.write("Please initial the chat.")
-    else:
-        #send text to promt for analysis
-        process_doc_from_store(title)
+# print(f'user selected: {selected_option}')
+# title = selected_option
+# if selected_option != None:
+#     #check to see if ai prompt started
+#     # Initialize chat history in session state for Document Analysis (doc) if not present
+#     if  st.session_state.conversation is None:
+#         st.write("Please initial the chat.")
+#     else:
+#         #send text to promt for analysis
+#         process_doc_from_store(title)
+
+# if clear_history:
+#     selected_option = "Please select a document"
 
 load_question_ux()
 
