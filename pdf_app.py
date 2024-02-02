@@ -176,9 +176,57 @@ def process_doc_from_store(title):
     #retrieve document text
     st.write("Processing request...")
     pdf_text = retrieve_document(title)
-    return pdf_text
-    
-            
+    user_query = "read and summarize the following context: " + pdf_text
+    # Initialize chat history in session state for Document Analysis (doc) if not present
+    if  st.session_state.conversation != None:
+        if 'doc_messages' not in st.session_state or clear_history:
+            # Start with first message from assistant
+            st.session_state['doc_messages'] = [{"role": "assistant", "content": "Ask A Question About BEAD"}]
+            st.session_state['chat_history'] = []  # Initialize chat_history as an empty list
+
+    # Display previous chat messages
+    if  st.session_state.conversation != None:
+        for message in st.session_state['doc_messages']:
+            with st.chat_message(message['role']):
+                st.write(message['content'])
+    # print("Rendering the UX!")
+    # If user provides input, process it
+    if  st.session_state.conversation != None:
+        if not OPENAI_API_KEY:
+                st.info("Please add your OpenAI API key to continue.")
+                st.stop()
+        # Add user's message to chat history
+        st.session_state['doc_messages'].append({"role": "user", "content": user_query})
+        with st.chat_message("user"):
+            st.markdown(user_query)
+
+        with st.spinner("Generating response..."):
+            # Check if the conversation chain is initialized
+            if 'conversation' in st.session_state:
+                st.session_state['chat_history'] = st.session_state.get('chat_history', []) + [
+                    {
+                        "role": "user",
+                        "content": user_query
+                    }
+                ]
+                # Process the user's message using the conversation chain
+                result = st.session_state.conversation({
+                    "question": user_query, 
+                    "chat_history": st.session_state['chat_history']})
+                response = result["answer"]
+                # Append the user's question and AI's answer to chat_history
+                st.session_state['chat_history'].append({
+                    "role": "assistant",
+                    "content": response
+                })
+            else:
+                response = "Please upload a document first to initialize the conversation chain."
+                
+            # Display AI's response in chat format
+            with st.chat_message("assistant"):
+                st.write(response)
+            # Add AI's response to doc_messages for displaying in UI
+            st.session_state['doc_messages'].append({"role": "assistant", "content": response})
 
 #preload_all_docs_from_path("docs/")
 #st.write("Preloaded all documents from path")
@@ -212,7 +260,8 @@ if submit_file_title:
 if clear_history:
     selected_option = "Please select a document"
 
+# if  st.session_state.conversation == None:
+#     load_question_ux()
 load_question_ux()
-
 
 
