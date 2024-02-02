@@ -1,7 +1,16 @@
+#[theme]
+#base="light"
+#primaryColor="#6D83F2"              # Lavender Blue
+#backgroundColor="#FFFFFF"          # White
+#secondaryBackgroundColor="#F7F7F9" # Light Gray
+#textColor="#1E1E2F"                # Midnight Blue (for text on light background)
+#font="sans serif"
+
+#customt default theme to match CompassAi
 [theme]
-base="light"
-primaryColor="#6D83F2"              # Lavender Blue
-backgroundColor="#FFFFFF"          # White
-secondaryBackgroundColor="#F7F7F9" # Light Gray
-textColor="#1E1E2F"                # Midnight Blue (for text on light background)
+base="dark"
+primaryColor="#6D83F2" #primary button colors
+backgroundColor="#1B2635" #main body background
+secondaryBackgroundColor="#233044"  #sidebar background
+textColor="rgba(255, 255, 255, 0.95)"                
 font="sans serif"

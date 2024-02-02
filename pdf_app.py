@@ -29,15 +29,17 @@ st.set_page_config(
 
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 #OPENAI_API_KEY = # st.sidebar.text_input("Enter Your OpenAI API Key:", type="password")
-st.sidebar.subheader("Model Selection")
-preferred_model='gpt-4'
-llm_model_options = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k','gpt-4', 'gpt-4-1106-preview']  # Add more models if available
-model_select = st.sidebar.selectbox('Select LLM Model:', llm_model_options, index=0)
-st.sidebar.markdown("""\n""")
-temperature_input = st.sidebar.slider('Set AI Randomness / Determinism:', min_value=0.0, max_value=1.0, value=0.0)
-st.sidebar.markdown("""\n""")
-clear_history = st.sidebar.button("Clear conversation history")
-
+main_sidebar = st.sidebar
+with main_sidebar:
+    main_sidebar.subheader("Model Selection")
+#st.sidebar.subheader("Model Selection")
+    preferred_model='gpt-4'
+    llm_model_options = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k','gpt-4', 'gpt-4-1106-preview']  # Add more models if available
+    model_select = main_sidebar.selectbox('Select LLM Model:', llm_model_options, index=0)
+    main_sidebar.markdown("""\n""")
+    temperature_input = main_sidebar.slider('Set AI Randomness / Determinism:', min_value=0.0, max_value=1.0, value=0.0)
+    main_sidebar.markdown("""\n""")
+    clear_history = main_sidebar.button("Clear conversation history")
 
 
 if "conversation" not in st.session_state:
@@ -174,54 +176,9 @@ def process_doc_from_store(title):
     #retrieve document text
     st.write("Processing request...")
     pdf_text = retrieve_document(title)
-    # Receive chunks from text
-    #text_chunks = get_text_chunks(pdf_text) #might not need to do this with gpt-4-turbo
-    user_query = "Read and summarize the following context: "+ pdf_text
-    ## st.write(text_chunks)  
-    # If user provides input, process it
-    if  st.session_state.conversation != None:
-        if not OPENAI_API_KEY:
-                st.info("Please add your OpenAI API key to continue.")
-                st.stop()
-        # Add user's message to chat history
-        st.session_state['doc_messages'].append({"role": "user", "content": user_query})
-        with st.chat_message("user"):
-            st.markdown(user_query)
-
-        with st.spinner("Generating response..."):
-            # Check if the conversation chain is initialized
-            if 'conversation' in st.session_state:
-                st.session_state['chat_history'] = st.session_state.get('chat_history', []) + [
-                    {
-                        "role": "user",
-                        "content": user_query
-                    }
-                ]
-                # Process the user's message using the conversation chain
-                result = st.session_state.conversation({
-                    "question": user_query, 
-                    "chat_history": st.session_state['chat_history']})
-                response = result["answer"]
-                # Append the user's question and AI's answer to chat_history
-                st.session_state['chat_history'].append({
-                    "role": "assistant",
-                    "content": response
-                })
-            else:
-                response = "Please upload a document first to initialize the conversation chain."
-                
-            # Display AI's response in chat format
-            with st.chat_message("assistant"):
-                st.write(response)
-             # Add AI's response to doc_messages for displaying in UI
-            st.session_state['doc_messages'].append({"role": "assistant", "content": response})
+    return pdf_text
+    
             
-
-    # Create FAISS Vector Store of PDF Docs
-    #vectorstore = get_vectorstore(text_chunks)
-
-    # Create conversation chain
-    #st.session_state.conversation = get_conversation_chain(vectorstore)
 
 #preload_all_docs_from_path("docs/")
 #st.write("Preloaded all documents from path")
@@ -233,28 +190,27 @@ if st.button("Click Here to Start Asking Questions About BEAD"):
         preload_all_docs_from_path("docs/")
         st.write("Preloaded all documents from path")
 st.spinner("Retrieving documents from S-3")
-title_list = retrieve_all_document_titles()
 
-# selected_option = ''
-# selected_option = st.sidebar.selectbox(
-#     "The S3 Bucket Contains the following documents", 
-#     (title_list),
-#     index=None,
-#     placeholder="Please select a document")
+with main_sidebar:
+    title_list = retrieve_all_document_titles()
 
-# print(f'user selected: {selected_option}')
-# title = selected_option
-# if selected_option != None:
-#     #check to see if ai prompt started
-#     # Initialize chat history in session state for Document Analysis (doc) if not present
-#     if  st.session_state.conversation is None:
-#         st.write("Please initial the chat.")
-#     else:
-#         #send text to promt for analysis
-#         process_doc_from_store(title)
+    selected_option = ''
+    selected_option = main_sidebar.selectbox(
+        "The S3 Bucket Contains the following documents", 
+        (title_list),
+        index=None,
+        placeholder="Please select a document")
 
-# if clear_history:
-#     selected_option = "Please select a document"
+    print(f'user selected: {selected_option}')
+    title = selected_option
+
+    submit_file_title = main_sidebar.button("Submit", key="title_selection", type="secondary")
+
+if submit_file_title:
+    process_doc_from_store(title)
+
+if clear_history:
+    selected_option = "Please select a document"
 
 load_question_ux()
 
