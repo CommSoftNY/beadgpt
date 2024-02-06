@@ -29,10 +29,10 @@ st.set_page_config(
 
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 #OPENAI_API_KEY = # st.sidebar.text_input("Enter Your OpenAI API Key:", type="password")
+#Set Base Ui Components
 main_sidebar = st.sidebar
 with main_sidebar:
     main_sidebar.subheader("Model Selection")
-#st.sidebar.subheader("Model Selection")
     preferred_model='gpt-4'
     llm_model_options = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k','gpt-4', 'gpt-4-1106-preview']  # Add more models if available
     model_select = main_sidebar.selectbox('Select LLM Model:', llm_model_options, index=0)
@@ -41,12 +41,14 @@ with main_sidebar:
     main_sidebar.markdown("""\n""")
     clear_history = main_sidebar.button("Clear conversation history")
 
+prompt = st.chat_input("Enter your query here")
 
 if "conversation" not in st.session_state:
     st.session_state.conversation = None
 
 st.markdown(f"""## AI-Assisted BEAD Document Analysis 📑 <span style=color:#2E9BF5><font size=5>Beta</font></span>""",unsafe_allow_html=True)
 
+#End Base Ui Components
 
 # Extracts and concatenates text from a list of PDF documents
 def get_pdf_text(pdf_docs):
@@ -94,7 +96,7 @@ def load_question_ux():
     print("Rendering the UX!")
     # If user provides input, process it
     if  st.session_state.conversation != None:
-        if user_query := st.chat_input("Enter your query here"):
+        if user_query := prompt:
             if not OPENAI_API_KEY:
                 st.info("Please add your OpenAI API key to continue.")
                 st.stop()
@@ -176,19 +178,84 @@ def process_doc_from_store(title):
     #retrieve document text
     st.write("Processing request...")
     pdf_text = retrieve_document(title)
-    return pdf_text
-    
-            
 
+    # Retrieve chunks from text
+    text_chunks = get_text_chunks(pdf_text)
+    ## st.write(text_chunks)  
+
+    # Create FAISS Vector Store of PDF Docs
+    vectorstore = get_vectorstore(text_chunks)
+
+    # Create conversation chain
+    st.session_state.conversation = get_conversation_chain(vectorstore)
+
+    user_query = "Read the context in the session state and await for further questions in reference to the previous document."
+
+    #user_query = pdf_text
+    # Initialize chat history in session state for Document Analysis (doc) if not present
+    if  st.session_state.conversation != None:
+        if 'doc_messages' not in st.session_state or clear_history:
+            # Start with first message from assistant
+            st.session_state['doc_messages'] = [{"role": "assistant", "content": "Ask A Question About BEAD"}]
+            st.session_state['chat_history'] = []  # Initialize chat_history as an empty list
+
+    # Display previous chat messages
+    if  st.session_state.conversation != None:
+        for message in st.session_state['doc_messages']:
+            with st.chat_message(message['role']):
+                st.write(message['content'])
+    
+    # # If user provides input, process it
+    if  st.session_state.conversation != None:
+        if not OPENAI_API_KEY:
+                st.info("Please add your OpenAI API key to continue.")
+                st.stop()
+        # Add user's message to chat history UI
+        st.session_state['doc_messages'].append({"role": "user", "content": user_query})
+        #st.chat_message("user")
+        with st.chat_message("user"):
+            st.markdown(user_query)
+
+        with st.spinner("Generating response from lookup..."):
+            # Check if the conversation chain is initialized
+            if 'conversation' in st.session_state:
+                st.session_state['chat_history'] = st.session_state.get('chat_history', []) + [
+                    {
+                        "role": "user",
+                        "content": user_query
+                    }
+                ]
+                # Process the user's message using the conversation chain
+                result = st.session_state.conversation({
+                    "question": user_query, 
+                    "chat_history": st.session_state['chat_history']})
+                response = result["answer"]
+                # Append the user's question and AI's answer to chat_history
+                st.session_state['chat_history'].append({
+                    "role": "assistant",
+                    "content": response
+                })
+            else:
+                response = "Please upload a document first to initialize the conversation chain."
+                
+            # Display AI's response in chat format
+            with st.chat_message("assistant"):
+                st.write(response)
+            #st.write(response)
+            # Add AI's response to doc_messages for displaying in UI
+            st.session_state['doc_messages'].append({"role": "assistant", "content": response})
+
+
+#Set UI components that execute functions
 #preload_all_docs_from_path("docs/")
 #st.write("Preloaded all documents from path")
 st.write(" Click the Button Below to load the AI Model and Documents when you are ready to start asking questions about BEAD")
 st.write(" You can select the AI Model and set the AI Randomness / Determinism in the sidebar to the left")
 st.write("Once your AI is loaded , changing the Model or Temperature will require you to reload the page")
-if st.button("Click Here to Start Asking Questions About BEAD"):
-        st.spinner("Processing")
-        preload_all_docs_from_path("docs/")
-        st.write("Preloaded all documents from path")
+# if st.button("Click Here to Start Asking Questions About BEAD"):
+#         st.spinner("Processing")
+#         preload_all_docs_from_path("docs/")
+#         st.write("Preloaded all documents from path")
 st.spinner("Retrieving documents from S-3")
 
 with main_sidebar:
@@ -209,10 +276,6 @@ with main_sidebar:
 if submit_file_title:
     process_doc_from_store(title)
 
-if clear_history:
-    selected_option = "Please select a document"
-
 load_question_ux()
-
 
 
